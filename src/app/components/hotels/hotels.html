@@ -1,0 +1,76 @@
+<div class="hotels-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Hotels</mat-card-title>
+      <div class="spacer"></div>
+      <button *ngIf="hasRole('Admin')" mat-raised-button color="primary" routerLink="/admin/hotels/new">
+        <mat-icon>add</mat-icon>
+        Add New Hotel
+      </button>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div *ngIf="loading" class="loading-container">
+        <mat-spinner></mat-spinner>
+        <p>Loading hotels...</p>
+      </div>
+
+      <div *ngIf="!loading">
+        <table mat-table [dataSource]="dataSource" matSort class="hotels-table">
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+            <td mat-cell *matCellDef="let hotel">{{ hotel.name }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="city">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>City</th>
+            <td mat-cell *matCellDef="let hotel">{{ hotel.city }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="phone">
+            <th mat-header-cell *matHeaderCellDef>Phone</th>
+            <td mat-cell *matCellDef="let hotel">{{ hotel.phone }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="email">
+            <th mat-header-cell *matHeaderCellDef>Email</th>
+            <td mat-cell *matCellDef="let hotel">{{ hotel.email }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="totalRooms">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Total Rooms</th>
+            <td mat-cell *matCellDef="let hotel">{{ hotel.totalRooms }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let hotel">
+              <button mat-button color="primary" [routerLink]="['/dashboard/hotels', hotel.id, 'rooms']">
+                <mat-icon>visibility</mat-icon>
+                View Rooms
+              </button>
+              <button *ngIf="hasRole('Guest')" mat-raised-button color="accent" [routerLink]="['/dashboard/hotels', hotel.id, 'book']">
+                <mat-icon>book_online</mat-icon>
+                Book Now
+              </button>
+              <button *ngIf="hasRole('Admin')" mat-button [routerLink]="['/admin/hotels', hotel.id, 'edit']">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+      </div>
+
+      <div *ngIf="!loading && dataSource.data.length === 0" class="no-data">
+        <mat-icon>hotel</mat-icon>
+        <p>No hotels available at the moment.</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

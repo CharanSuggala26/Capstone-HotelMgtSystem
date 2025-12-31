@@ -1,0 +1,3 @@
+.bill-detail-container { max-width: 720px; margin: 16px auto; }
+.total { margin-top: 8px; font-size: 1.1em; }
+.loading, .no-data { text-align: center; padding: 24px; }

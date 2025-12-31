@@ -1,0 +1,34 @@
+.assign-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+.assign-card {
+  width: 100%;
+  max-width: 600px;
+  padding: 20px;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.warning-text {
+  color: #ffa000 !important;
+  font-weight: 500;
+}
+
+.error-msg {
+  color: #d32f2f;
+  background: #fdecea;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}

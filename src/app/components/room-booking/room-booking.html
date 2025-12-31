@@ -1,0 +1,83 @@
+<div class="booking-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Book a Room</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="bookingForm">
+
+        <!-- SEARCH SECTION -->
+        <div class="search-section">
+          <h3>Search Available Rooms</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Check-in Date</mat-label>
+              <input matInput [matDatepicker]="checkInPicker" formControlName="checkInDate">
+              <mat-datepicker-toggle matSuffix [for]="checkInPicker"></mat-datepicker-toggle>
+              <mat-datepicker #checkInPicker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Check-out Date</mat-label>
+              <input matInput [matDatepicker]="checkOutPicker" formControlName="checkOutDate">
+              <mat-datepicker-toggle matSuffix [for]="checkOutPicker"></mat-datepicker-toggle>
+              <mat-datepicker #checkOutPicker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Guests</mat-label>
+              <input matInput type="number" formControlName="numberOfGuests">
+            </mat-form-field>
+          </div>
+
+          <button mat-raised-button color="primary" type="button"
+            (click)="searchRooms()" [disabled]="isSearchDisabled() || loading">
+            <mat-icon>search</mat-icon>
+            Search Rooms
+          </button>
+        </div>
+
+        <!-- LOADING -->
+        <div *ngIf="loading" class="loading-container">
+          <mat-spinner></mat-spinner>
+          <p>Searching available rooms...</p>
+        </div>
+
+        <!-- AVAILABLE ROOMS -->
+        <div *ngIf="!loading && availableRooms.length > 0" class="rooms-section">
+          <h3>Available Rooms</h3>
+          <mat-radio-group formControlName="selectedRoomId" class="rooms-grid">
+            <mat-card *ngFor="let room of availableRooms" class="room-card">
+              <mat-card-content>
+                <div class="room-header">
+                  <h4>Room {{ room.roomNumber }}</h4>
+                  <mat-chip color="primary" selected>{{ getRoomTypeText(room.type) }}</mat-chip>
+                </div>
+                <p><mat-icon>people</mat-icon> Capacity: {{ room.capacity }}</p>
+                <p><mat-icon>attach_money</mat-icon> {{ room.basePrice }}/night</p>
+                <mat-radio-button [value]="room.id">Select this room</mat-radio-button>
+              </mat-card-content>
+            </mat-card>
+          </mat-radio-group>
+
+          <div class="booking-actions">
+            <button mat-raised-button color="accent"
+              (click)="bookRoom()"
+              [disabled]="bookingForm.invalid || loading">
+              <mat-icon>book_online</mat-icon>
+              Book Selected Room
+            </button>
+          </div>
+        </div>
+
+        <!-- NO ROOMS -->
+        <div *ngIf="!loading && availableRooms.length === 0 && bookingForm.value.checkInDate">
+          <mat-icon>hotel</mat-icon>
+          <p>No rooms available for selected dates.</p>
+        </div>
+
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>
