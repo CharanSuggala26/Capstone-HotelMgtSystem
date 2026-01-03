@@ -44,7 +44,12 @@ export const routes: Routes = [
         canActivate: [() => inject(AuthService).hasRole('Admin') ? true : createUrlTreeFromSnapshot(inject(ActivatedRoute).snapshot, ['/unauthorized'])]
       },
       { path: 'admin/assign', loadComponent: () => import('./components/assign-hotel/assign-hotel').then(m => m.AssignHotel), canActivate: [() => inject(AuthService).hasRole('Admin') ? true : createUrlTreeFromSnapshot(inject(ActivatedRoute).snapshot, ['/unauthorized'])] },
-      { path: 'admin/reports', component: Reports, canActivate: [() => inject(AuthService).hasRole('Admin') ? true : createUrlTreeFromSnapshot(inject(ActivatedRoute).snapshot, ['/unauthorized'])] },
+      {
+        path: 'admin/reports', component: Reports, canActivate: [() => {
+          const auth = inject(AuthService);
+          return (auth.hasRole('Admin') || auth.hasRole('HotelManager')) ? true : createUrlTreeFromSnapshot(inject(ActivatedRoute).snapshot, ['/unauthorized']);
+        }]
+      },
       {
         path: 'admin/seasonal-rates',
         loadComponent: () => import('./components/seasonal-rates/seasonal-rates').then(m => m.SeasonalRatesComponent),

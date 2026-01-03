@@ -45,6 +45,7 @@ export interface ReservationDto {
   roomId: number;
   roomNumber: string;
   hotelName: string;
+  hotelId: number;
 }
 
 export interface BillDto {

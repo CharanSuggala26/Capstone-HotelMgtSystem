@@ -129,12 +129,14 @@ export class RoomsComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this.destroy$))
             .subscribe((res: any) => {
               const items = (res && res.data) || (Array.isArray(res) ? res : []);
-              this.hotels = items;
-              // If there is no hotelId yet but hotels list exists, optionally set default
-              if (!this.roomForm.value.hotelId && this.hotels.length === 1) {
-                this.roomForm.patchValue({ hotelId: this.hotels[0].id });
-              }
-              this.reload();
+              setTimeout(() => {
+                this.hotels = items;
+                // If there is no hotelId yet but hotels list exists, optionally set default
+                if (!this.roomForm.value.hotelId && this.hotels.length === 1) {
+                  this.roomForm.patchValue({ hotelId: this.hotels[0].id });
+                }
+              });
+              this.reload(); // Reload happens independently of UI list update
             });
         } else {
           // Non-admin/non-manager: just load all rooms or based on route param

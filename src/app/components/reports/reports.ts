@@ -1,6 +1,6 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { forkJoin, of, timer } from 'rxjs';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, Inject, PLATFORM_ID, ViewChild } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { forkJoin, of, timer, Subscription, interval } from 'rxjs';
 import { catchError, finalize, take } from 'rxjs/operators';
 import { BaseChartDirective, provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
@@ -8,6 +8,7 @@ import { ChartConfiguration, ChartData } from 'chart.js';
 import { HotelService } from '../../services/hotel';
 import { ReservationService } from '../../services/reservation';
 import { UserService } from '../../services/user';
+import { AuthService } from '../../services/auth';
 import { ReservationStatus, PaymentStatus } from '../../models';
 
 @Component({
@@ -19,6 +20,7 @@ import { ReservationStatus, PaymentStatus } from '../../models';
   styleUrls: ['./reports.css']
 })
 export class Reports implements OnInit, OnDestroy {
+  @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
   loading = true;
 
   stats = {
@@ -42,23 +44,41 @@ export class Reports implements OnInit, OnDestroy {
     maintainAspectRatio: false
   };
 
+  private refreshSubscription: Subscription | null = null;
+  private isBrowser: boolean;
+
   constructor(
     private hotelService: HotelService,
     private reservationService: ReservationService,
     private userService: UserService,
-    private cdr: ChangeDetectorRef
-  ) { }
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   ngOnInit(): void {
     this.fetchData();
+
+    // Refresh data every 3 seconds if in browser
+    if (this.isBrowser) {
+      this.refreshSubscription = interval(3000).subscribe(() => {
+        this.fetchData(true);
+      });
+    }
   }
 
   ngOnDestroy(): void {
-    this.loading = true;
+    if (this.refreshSubscription) {
+      this.refreshSubscription.unsubscribe();
+    }
   }
 
-  fetchData(): void {
-    this.loading = true;
+  fetchData(isBackground: boolean = false): void {
+    if (!isBackground) {
+      this.loading = true;
+    }
 
     forkJoin({
       hotels: this.hotelService.getHotels().pipe(catchError(() => of([]))),
@@ -68,7 +88,9 @@ export class Reports implements OnInit, OnDestroy {
     }).pipe(
       take(1),
       finalize(() => {
-        this.loading = false;
+        if (!isBackground) {
+          this.loading = false;
+        }
         this.cdr.detectChanges(); // Manually force UI update
       })
     ).subscribe((res: any) => {
@@ -77,15 +99,37 @@ export class Reports implements OnInit, OnDestroy {
   }
 
   private processData(res: any) {
-    const hotels = res.hotels?.data || res.hotels || [];
-    const reservations = res.reservations?.data || res.reservations || [];
-    const bills = res.bills?.data || res.bills || [];
+    let hotels = res.hotels?.data || res.hotels || [];
+    let reservations = res.reservations?.data || res.reservations || [];
+    let bills = res.bills?.data || res.bills || [];
     const userResult = res.users?.data || res.users;
 
+    // Filter data for Hotel Manager
+    if (this.authService.hasRole('HotelManager')) {
+      const hotelId = this.authService.getCurrentUser()?.hotelId;
+      if (hotelId) {
+        hotels = hotels.filter((h: any) => h.id === hotelId);
+        reservations = reservations.filter((r: any) => r.hotelId === hotelId);
+
+        const reservationIds = new Set(reservations.map((r: any) => r.id));
+        bills = bills.filter((b: any) => reservationIds.has(b.reservationId));
+      } else {
+        // If Hotel Manager has no hotel assigned, show nothing
+        hotels = [];
+        reservations = [];
+        bills = [];
+      }
+    }
+
     this.stats.totalHotels = hotels.length;
-    this.stats.totalRevenue = bills
-      .filter((b: any) => b.paymentStatus === PaymentStatus.Paid || b.paymentStatus === 2)
-      .reduce((sum: number, b: any) => sum + (b.totalAmount || 0), 0);
+
+    // Calculate Revenue based on Bookings (Projected/Booked Revenue) to show immediate stats
+    const validReservations = reservations.filter((r: any) =>
+      r.status !== ReservationStatus.Cancelled && r.status !== 5
+    );
+
+    this.stats.totalRevenue = validReservations
+      .reduce((sum: number, r: any) => sum + (r.totalAmount || 0), 0);
 
     const totalRooms = hotels.reduce((sum: number, h: any) => sum + (h.totalRooms || 0), 0) || 1;
     this.stats.activeReservations = reservations.filter((r: any) =>
@@ -116,7 +160,13 @@ export class Reports implements OnInit, OnDestroy {
     }).length;
 
     this.stats.occupancyRate = Math.round((occupiedRooms / totalRooms) * 100);
-    this.stats.totalUsers = userResult?.totalCount || 0;
+
+    if (this.authService.hasRole('HotelManager')) {
+      // For Hotel Manager, count unique guests who have reservations at this hotel
+      this.stats.totalUsers = new Set(reservations.map((r: any) => r.userId)).size;
+    } else {
+      this.stats.totalUsers = userResult?.totalCount || 0;
+    }
 
     // Calculate last 6 months dynamically
     const last6Months = [];
@@ -127,19 +177,15 @@ export class Reports implements OnInit, OnDestroy {
       last6Months.push(d.toLocaleString('default', { month: 'short' }));
     }
 
-    // Process Revenue per Month
-    const paidBills = bills.filter((b: any) =>
-      (b.paymentStatus === PaymentStatus.Paid || b.paymentStatus === 2) && b.paidAt
-    );
-
-    paidBills.forEach((b: any) => {
-      const paidDate = new Date(b.paidAt);
-      const diffMonths = (today.getFullYear() - paidDate.getFullYear()) * 12 + (today.getMonth() - paidDate.getMonth());
+    // Process Revenue per Month using CheckInDate (Projected Activity)
+    validReservations.forEach((r: any) => {
+      const checkIn = new Date(r.checkInDate);
+      const diffMonths = (today.getFullYear() - checkIn.getFullYear()) * 12 + (today.getMonth() - checkIn.getMonth());
 
       if (diffMonths >= 0 && diffMonths < 6) {
         // index 0 = 5 months ago, index 5 = current month
         const index = 5 - diffMonths;
-        revenueByMonth[index] += (b.totalAmount || 0);
+        revenueByMonth[index] += (r.totalAmount || 0);
       }
     });
 
@@ -166,5 +212,8 @@ export class Reports implements OnInit, OnDestroy {
         backgroundColor: ['#4e73df', '#1cc88a', '#e74a3b']
       }]
     };
+
+    // Explicitly update chart
+    this.chart?.update();
   }
 }

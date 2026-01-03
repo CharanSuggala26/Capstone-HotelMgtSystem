@@ -2,7 +2,7 @@
   <h2>Rooms</h2>
 
   <!-- Hotel selector for Admin / HotelManager -->
-  <div *ngIf="isAdmin || isManager" class="hotel-selector">
+  <div *ngIf="isAdmin || isManager" class="hotel-selector" [formGroup]="roomForm">
     <mat-form-field appearance="outline" style="min-width: 250px;">
       <mat-label>Hotel</mat-label>
       <mat-select formControlName="hotelId" (selectionChange)="onHotelSelectionChange()">
