@@ -119,9 +119,42 @@
   color: #666;
 }
 
-.no-rooms mat-icon {
-  font-size: 48px;
-  width: 48px;
-  height: 48px;
+.guest-email-field {
+  grid-column: 1 / -1;
+  /* Make it full width in the grid */
+  background-color: #f1f8ff;
+  /* Light blue background to distinct it as Staff feature */
+  border-radius: 4px;
+}
+
+/* Guest Registration Panel */
+.guest-registration-panel {
+  margin-top: 1rem;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.guest-registration-panel h4 {
+  margin-top: 0;
   margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+.guest-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  align-items: center;
+}
+
+.search-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.search-actions button mat-icon {
+  margin-right: 8px;
 }

@@ -8,6 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { ReservationService } from '../../services/reservation';
+import { AuthService } from '../../services/auth';
 import { BillDto, PaymentStatus } from '../../models';
 
 @Component({
@@ -26,6 +27,7 @@ export class BillDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private reservationService: ReservationService,
+    private authService: AuthService,
     private cdr: ChangeDetectorRef,
     private snackBar: MatSnackBar
   ) { }
@@ -87,8 +89,13 @@ export class BillDetailComponent implements OnInit {
       },
       error: (err) => {
         console.error('Payment failed', err);
+        const errorMsg = err.error?.message || err.error?.title || err.statusText || 'Unknown error';
+        const valErrors = err.error?.errors ? JSON.stringify(err.error.errors) : '';
+
         this.loading = false;
-        this.snackBar.open('Payment failed. Please try again.', 'OK', { duration: 5000 });
+        this.cdr.detectChanges();
+
+        this.snackBar.open(`Payment failed: ${errorMsg} ${valErrors}`, 'OK', { duration: 7000 });
       }
     });
   }
@@ -114,6 +121,9 @@ export class BillDetailComponent implements OnInit {
       case PaymentStatus.Refunded: return 'warn';
       default: return '';
     }
+  }
+  hasRole(role: string): boolean {
+    return this.authService.hasRole(role);
   }
 }
 

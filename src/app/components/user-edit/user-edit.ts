@@ -6,6 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { UserService } from '../../services/user';
 
 @Component({
@@ -18,6 +19,7 @@ import { UserService } from '../../services/user';
     MatInputModule,
     MatButtonModule,
     MatSelectModule,
+    MatSnackBarModule,
     RouterModule
   ],
   templateUrl: './user-edit.html',
@@ -27,15 +29,15 @@ export class UserEditComponent implements OnInit {
   userForm: FormGroup;
   userId: string | null = null;
   isEditMode = false;
-  
-  // Note: Backend currently restricts promotion to these specific roles
+
   roles: string[] = ['Guest', 'Receptionist', 'HotelManager', 'Admin'];
 
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private snackBar: MatSnackBar
   ) {
     this.userForm = this.fb.group({
       firstName: ['', [Validators.required]],
@@ -51,7 +53,7 @@ export class UserEditComponent implements OnInit {
     if (this.userId) {
       this.isEditMode = true;
       this.loadUser(this.userId);
-      this.userForm.get('email')?.disable(); // Prevent email editing
+      this.userForm.get('email')?.disable();
     }
   }
 
@@ -83,25 +85,37 @@ export class UserEditComponent implements OnInit {
         phoneNumber: formValue.phoneNumber
       };
 
-      // Step 1: Update basic profile info
       this.userService.updateUser(this.userId, updateData).subscribe({
         next: () => {
-          // Step 2: Update Roles (Payload now includes userId)
           this.userService.promoteUser(this.userId!, formValue.roles).subscribe({
             next: () => {
-              alert('User updated successfully!');
+              this.snackBar.open('User updated successfully!', 'Close', {
+                duration: 3000,
+                verticalPosition: 'top',
+                horizontalPosition: 'center',
+                panelClass: ['success-snackbar']
+              });
               this.router.navigate(['/dashboard/admin/users']);
             },
             error: (err) => {
               console.error('Role Update Error:', err.error);
-              // Backend likely failed the "allowedRoles" check
-              alert(err.error?.message || 'Profile updated, but role update failed.');
+              this.snackBar.open(err.error?.message || 'Profile updated, but role update failed.', 'Close', {
+                duration: 3000,
+                verticalPosition: 'top',
+                horizontalPosition: 'center',
+                panelClass: ['warning-snackbar']
+              });
             }
           });
         },
         error: (err) => {
           console.error('Profile Update Error:', err);
-          alert('Failed to update user profile.');
+          this.snackBar.open('Failed to update user profile.', 'Close', {
+            duration: 3000,
+            verticalPosition: 'top',
+            horizontalPosition: 'center',
+            panelClass: ['error-snackbar']
+          });
         }
       });
     }

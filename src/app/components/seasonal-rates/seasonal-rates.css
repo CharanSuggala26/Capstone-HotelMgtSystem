@@ -1,0 +1,45 @@
+.seasonal-rates-container {
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.hotel-select {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.rate-form {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.form-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.form-row mat-form-field {
+    flex: 1;
+    min-width: 200px;
+}
+
+.rates-table {
+    width: 100%;
+}
+
+.no-data,
+.hint {
+    text-align: center;
+    color: #666;
+    margin-top: 20px;
+}
+
+h3 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    color: #3f51b5;
+}

@@ -15,6 +15,10 @@ export class ReservationService {
     return this.http.get<ApiResponse<ReservationDto[]>>(`${this.apiUrl}/Reservations`);
   }
 
+  getAllReservations(): Observable<ApiResponse<ReservationDto[]>> {
+    return this.http.get<ApiResponse<ReservationDto[]>>(`${this.apiUrl}/Reservations/all`);
+  }
+
   createReservation(reservation: any): Observable<ApiResponse<ReservationDto>> {
     return this.http.post<ApiResponse<ReservationDto>>(`${this.apiUrl}/Reservations`, reservation);
   }
@@ -24,11 +28,11 @@ export class ReservationService {
   }
 
   checkIn(reservationId: number): Observable<ApiResponse<void>> {
-    return this.http.post<ApiResponse<void>>(`${this.apiUrl}/Reservations/checkin`, { reservationId });
+    return this.http.post<ApiResponse<void>>(`${this.apiUrl}/Reservations/${reservationId}/checkin`, {});
   }
 
   checkOut(reservationId: number): Observable<ApiResponse<void>> {
-    return this.http.post<ApiResponse<void>>(`${this.apiUrl}/Reservations/checkout`, { reservationId });
+    return this.http.post<ApiResponse<void>>(`${this.apiUrl}/Reservations/${reservationId}/checkout`, {});
   }
 
   getBills(): Observable<ApiResponse<BillDto[]>> {
@@ -43,8 +47,7 @@ export class ReservationService {
     return this.http.post<ApiResponse<void>>(`${this.apiUrl}/Bills/${billId}/payment`, { billId, amount });
   }
 
-  // Admin-only: create bill (backend should accept a minimal payload with reservationId)
-  createBillForReservation(reservationId: number): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/Bills`, { reservationId });
+  createBill(billData: any): Observable<ApiResponse<BillDto>> {
+    return this.http.post<ApiResponse<BillDto>>(`${this.apiUrl}/Bills`, billData);
   }
 }

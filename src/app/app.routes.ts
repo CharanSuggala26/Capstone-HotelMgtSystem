@@ -8,11 +8,13 @@ import { HotelsComponent } from './components/hotels/hotels';
 import { ReservationsComponent } from './components/reservations/reservations';
 import { RoomBookingComponent } from './components/room-booking/room-booking';
 import { authGuard } from './guards/auth-guard';
-import {RoomsComponent} from './components/rooms/rooms';
+import { RoomsComponent } from './components/rooms/rooms';
 import { Reports } from './components/reports/reports';
 
+import { Welcome } from './components/welcome/welcome';
+
 export const routes: Routes = [
-  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  { path: '', component: Welcome },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   {
@@ -41,8 +43,16 @@ export const routes: Routes = [
         loadComponent: () => import('./components/hotel-admin-list/hotel-admin-list').then(m => m.HotelAdminListComponent),
         canActivate: [() => inject(AuthService).hasRole('Admin') ? true : createUrlTreeFromSnapshot(inject(ActivatedRoute).snapshot, ['/unauthorized'])]
       },
-      {path: 'admin/assign', loadComponent: () => import('./components/assign-hotel/assign-hotel').then(m => m.AssignHotel), canActivate: [() => inject(AuthService).hasRole('Admin') ? true : createUrlTreeFromSnapshot(inject(ActivatedRoute).snapshot, ['/unauthorized'])]},
-      {path:'admin/reports', component: Reports, canActivate: [() => inject(AuthService).hasRole('Admin') ? true : createUrlTreeFromSnapshot(inject(ActivatedRoute).snapshot, ['/unauthorized'])]},
+      { path: 'admin/assign', loadComponent: () => import('./components/assign-hotel/assign-hotel').then(m => m.AssignHotel), canActivate: [() => inject(AuthService).hasRole('Admin') ? true : createUrlTreeFromSnapshot(inject(ActivatedRoute).snapshot, ['/unauthorized'])] },
+      { path: 'admin/reports', component: Reports, canActivate: [() => inject(AuthService).hasRole('Admin') ? true : createUrlTreeFromSnapshot(inject(ActivatedRoute).snapshot, ['/unauthorized'])] },
+      {
+        path: 'admin/seasonal-rates',
+        loadComponent: () => import('./components/seasonal-rates/seasonal-rates').then(m => m.SeasonalRatesComponent),
+        canActivate: [() => {
+          const auth = inject(AuthService);
+          return (auth.hasRole('Admin') || auth.hasRole('HotelManager')) ? true : createUrlTreeFromSnapshot(inject(ActivatedRoute).snapshot, ['/unauthorized']);
+        }]
+      },
       { path: 'rooms', loadComponent: () => import('./components/rooms/rooms').then(m => m.RoomsComponent) },
       { path: 'hotels/:id/rooms', loadComponent: () => import('./components/rooms/rooms').then(m => m.RoomsComponent) },
       {

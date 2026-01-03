@@ -98,6 +98,19 @@
   }
 }
 
+/* Filter Panel Styling */
+.filter-panel {
+  background: white;
+  padding: 16px 24px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
 @media (max-width: 480px) {
   .form-row {
     grid-template-columns: 1fr;

@@ -15,7 +15,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatIconModule } from '@angular/material/icon';  
+import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
@@ -23,7 +23,7 @@ import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-room-booking',
-  standalone: true,  
+  standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -63,8 +63,25 @@ export class RoomBookingComponent implements OnInit {
       checkInDate: ['', Validators.required],
       checkOutDate: ['', Validators.required],
       numberOfGuests: [1, [Validators.required, Validators.min(1)]],
-      selectedRoomId: ['', Validators.required]
+      selectedRoomId: ['', Validators.required],
+      guestEmail: [''] // Optional, for Staff only
     });
+
+    this.guestForm = this.fb.group({
+      firstName: ['', Validators.required],
+      lastName: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['Guest123!', Validators.required], // Default password for guests
+      phoneNumber: ['']
+    });
+  }
+
+  hasRole(role: string): boolean {
+    return this.auth.hasRole(role);
+  }
+
+  get isStaff(): boolean {
+    return this.hasRole('Admin') || this.hasRole('Receptionist') || this.hasRole('HotelManager');
   }
 
   ngOnInit(): void {
@@ -91,7 +108,15 @@ export class RoomBookingComponent implements OnInit {
   searchRooms(): void {
     const rawCheckIn = this.bookingForm.get('checkInDate')?.value;
     const rawCheckOut = this.bookingForm.get('checkOutDate')?.value;
-    if (!rawCheckIn || !rawCheckOut) return alert('Please select both check-in and check-out dates.');
+    if (!rawCheckIn || !rawCheckOut) {
+      this.snackBar.open('Please select both check-in and check-out dates.', 'Close', {
+        duration: 3000,
+        verticalPosition: 'top',
+        horizontalPosition: 'center',
+        panelClass: ['warning-snackbar']
+      });
+      return;
+    }
 
     const checkInStr = this.formatDateToApiDate(rawCheckIn, true);
     const checkOutStr = this.formatDateToApiDate(rawCheckOut, false);
@@ -207,7 +232,8 @@ export class RoomBookingComponent implements OnInit {
       hotelId: this.hotelId,
       checkInDate: this.formatDateToApiDate(rawCheckIn, true),
       checkOutDate: this.formatDateToApiDate(rawCheckOut, false),
-      numberOfGuests: Number(this.bookingForm.get('numberOfGuests')?.value)
+      numberOfGuests: Number(this.bookingForm.get('numberOfGuests')?.value),
+      guestEmail: this.bookingForm.get('guestEmail')?.value || null
     };
 
     console.debug('Attempting booking with payload:', booking);
@@ -225,76 +251,20 @@ export class RoomBookingComponent implements OnInit {
           const reservation = _possibleReservation;
           const reservationId = reservation.id;
 
-          // Inform user we're waiting for bill
-          const snackRef = this.snackBar.open('Booking created — waiting for bill to appear', 'View Reservations', { duration: 6000 });
-          snackRef.onAction().subscribe(() => setTimeout(() => this.router.navigate(['/dashboard/reservations']), 0));
+          // Booking successful
+          const msg = 'Booking request sent! Status: Booked. Please wait for hotel confirmation.';
+          this.snackBar.open(msg, 'View Reservations', { duration: 5000 })
+            .onAction().subscribe(() => this.router.navigate(['/dashboard/reservations']));
 
-          // Poll for the bill associated with this reservation (backend may create it async)
-          const attempts = 8;
-          const pollForBill = (remaining: number) => {
-            this.reservationService.getBills().subscribe({
-              next: (bResp: any) => {
-                const bills: any[] = Array.isArray(bResp) ? bResp : (bResp?.data || []);
-                const bill = bills.find(b => b.reservationId === reservationId);
-                if (bill) {
-                  // Notify and navigate directly to bill detail so user can pay on next tick
-                  setTimeout(() => {
-                    this.snackBar.open('Bill is ready — opening payment', 'Open', { duration: 3000 });
-                    this.router.navigate(['/dashboard/bills', bill.id]);
-                  }, 0);
-                      } else if (remaining > 0) {
-                  setTimeout(() => pollForBill(remaining - 1), 1000);
-                } else {
-                  // No bill after polling: offer Admins to create one, otherwise navigate to bills list
-                  if (this.auth?.hasRole && this.auth.hasRole('Admin')) {
-                    const ref = this.snackBar.open('No bill found. Create bill now?', 'Create Bill', { duration: 8000 });
-                    ref.onAction().subscribe(() => {
-                      this.reservationService.createBillForReservation(reservationId).subscribe({
-                        next: (createResp: any) => {
-                          const created = Array.isArray(createResp) ? createResp[0] : (createResp?.data || createResp);
-                          const bid = created?.id;
-                          if (bid) setTimeout(() => this.router.navigate(['/dashboard/bills', bid]), 0);
-                          else setTimeout(() => this.router.navigate(['/dashboard/bills']), 0);
-                        },
-                        error: (err) => {
-                          console.error('Failed to create bill', err);
-                          setTimeout(() => {
-                            this.snackBar.open('Failed to create bill. Please try later.', 'OK', { duration: 5000 });
-                            this.router.navigate(['/dashboard/bills']);
-                          }, 0);
-                        }
-                      });
-                    });
-                  } else {
-                    // No bill for non-admin users: explain and send them to Reservations to see booking status
-                    setTimeout(() => {
-                      this.snackBar.open('Booking saved. Bills are generated after checkout or by staff; check My Reservations for details.', 'View Reservations', { duration: 8000 }).onAction().subscribe(() => this.router.navigate(['/dashboard/reservations']));
-                      console.debug('Polling ended — no bill found for reservation', reservationId);
-                      this.router.navigate(['/dashboard/reservations']);
-                    }, 0);
-                  }
-                }
-              },
-              error: () => {
-                if (remaining > 0) setTimeout(() => pollForBill(remaining - 1), 1000);
-                else {
-                  setTimeout(() => {
-                    this.snackBar.open('Could not fetch bills. Please check My Bills later.', 'View Bills', { duration: 6000 }).onAction().subscribe(() => this.router.navigate(['/dashboard/bills']));
-                    this.router.navigate(['/dashboard/bills']);
-                  }, 0);
-                }
-              }
-            });
-          };
+          setTimeout(() => this.router.navigate(['/dashboard/reservations']), 1500);
 
-          pollForBill(attempts);
         } else {
           const msg = response?.message || (Array.isArray(response?.errors) ? response.errors.join('; ') : 'Booking failed.');
           console.warn('Booking failed (server-side):', msg, response);
-        setTimeout(() => this.snackBar.open(msg, 'OK', { duration: 7000 }), 0);
+          setTimeout(() => this.snackBar.open(msg, 'OK', { duration: 7000 }), 0);
         }
       },
-      error: (err) => {
+      error: (err: any) => {
         const serverMessage = err?.error?.message || (err?.error?.errors && Array.isArray(err.error.errors) ? err.error.errors.join('; ') : null);
         console.error('Booking failed (network/error):', err, serverMessage);
         this.loading = false;
@@ -312,5 +282,34 @@ export class RoomBookingComponent implements OnInit {
       case RoomType.Deluxe: return 'Deluxe';
       default: return 'Unknown';
     }
+  }
+
+  // Guest Registration Helpers
+  showRegisterGuest = false;
+  guestForm: FormGroup;
+
+  toggleRegisterGuest(): void {
+    this.showRegisterGuest = !this.showRegisterGuest;
+  }
+
+  registerGuest(): void {
+    if (this.guestForm.invalid) return;
+    this.loading = true;
+    this.auth.registerGuest(this.guestForm.value).subscribe({
+      next: (res) => {
+        this.loading = false;
+        if (res.success) {
+          this.snackBar.open('Guest registered successfully!', 'OK', { duration: 3000 });
+          this.bookingForm.patchValue({ guestEmail: this.guestForm.value.email });
+          this.showRegisterGuest = false;
+          this.guestForm.reset({ password: 'Guest123!' });
+        }
+      },
+      error: (err) => {
+        this.loading = false;
+        const msg = err.error?.message || 'Registration failed';
+        this.snackBar.open(msg, 'OK', { duration: 5000 });
+      }
+    });
   }
 }

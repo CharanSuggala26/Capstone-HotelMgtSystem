@@ -1,12 +1,13 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 
@@ -20,12 +21,14 @@ import { RoomDto, RoomType, RoomStatus, HotelDto } from '../../models';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     MatTableModule,
     MatButtonModule,
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatSnackBarModule,
     RouterModule
   ],
   templateUrl: './rooms.html',
@@ -57,11 +60,18 @@ export class RoomsComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
+  // Filters
+  filterType: number | null = null;
+  filterStatus: number | null = null;
+  filterPriceMin: number | null = null;
+  filterPriceMax: number | null = null;
+
   constructor(
     private fb: FormBuilder,
     private hotelService: HotelService,
     private auth: AuthService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private snackBar: MatSnackBar
   ) {
     this.roomForm = this.fb.group({
       id: [null],
@@ -75,6 +85,24 @@ export class RoomsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Custom filter predicate
+    this.dataSource.filterPredicate = (data: RoomDto, filter: string) => {
+      // Logic combines specific filters
+      const matchType = this.filterType === null || data.type === this.filterType;
+      const matchStatus = this.filterStatus === null || data.status === this.filterStatus;
+      const matchMin = this.filterPriceMin === null || data.basePrice >= this.filterPriceMin;
+      const matchMax = this.filterPriceMax === null || data.basePrice <= this.filterPriceMax;
+
+      // General string search if entered (optional, can keep separate)
+      // filter string handles the "general" search if we had one, but we are replacing with dropdowns.
+      // If we want to keep the text search too:
+      // const searchStr = filter.toLowerCase();
+      // const matchText = data.roomNumber.toLowerCase().includes(searchStr); 
+
+      return matchType && matchStatus && matchMin && matchMax;
+    };
+
+    // ... existing init code ...
     // route param override
     const idParam = this.route.snapshot.paramMap.get('id');
     this.hotelIdFromRoute = idParam ? Number(idParam) : null;
@@ -114,9 +142,28 @@ export class RoomsComponent implements OnInit, OnDestroy {
         }
       });
 
-    // reload whenever hotel selection in the form changes
     this.roomForm.get('hotelId')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.reload());
   }
+
+  // Trigger filtering
+  applyCustomFilter(): void {
+    // We toggle the filter string just to trigger the predicate. 
+    // The value doesn't matter much if we use the class properties in predicate directly, 
+    // but Angular Material Table expects a filter string change to re-run.
+    this.dataSource.filter = '' + Math.random();
+  }
+
+  clearFilters(): void {
+    this.filterType = null;
+    this.filterStatus = null;
+    this.filterPriceMin = null;
+    this.filterPriceMax = null;
+    this.applyCustomFilter();
+  }
+
+  // Previous applyFilter() removed as we replaced it
+
+  // ... rest of methods ...
 
   loadAllRooms(): void {
     this.hotelService.getRooms().pipe(takeUntil(this.destroy$)).subscribe(res => {
@@ -124,6 +171,7 @@ export class RoomsComponent implements OnInit, OnDestroy {
       this.dataSource.data = items;
     });
   }
+  // ... and so on ...
 
   loadRoomsByHotel(hotelId: number): void {
     this.hotelService.getRoomsByHotel(hotelId).pipe(takeUntil(this.destroy$)).subscribe(res => {
@@ -155,19 +203,41 @@ export class RoomsComponent implements OnInit, OnDestroy {
     if (this.editing && value.id) {
       this.hotelService.updateRoom(value.id, value).subscribe((res: any) => {
         if (res?.success !== false) {
+          this.snackBar.open('Room updated successfully', 'Close', {
+            duration: 3000,
+            verticalPosition: 'top',
+            horizontalPosition: 'center',
+            panelClass: ['success-snackbar']
+          });
           this.reload();
           this.cancelEdit();
         } else {
-          alert(res?.message || 'Failed updating room');
+          this.snackBar.open(res?.message || 'Failed updating room', 'Close', {
+            duration: 3000,
+            verticalPosition: 'top',
+            horizontalPosition: 'center',
+            panelClass: ['error-snackbar']
+          });
         }
       });
     } else {
       this.hotelService.createRoom(value).subscribe((res: any) => {
         if (res?.success !== false) {
+          this.snackBar.open('Room created successfully', 'Close', {
+            duration: 3000,
+            verticalPosition: 'top',
+            horizontalPosition: 'center',
+            panelClass: ['success-snackbar']
+          });
           this.reload();
           this.cancelEdit();
         } else {
-          alert(res?.message || 'Failed creating room');
+          this.snackBar.open(res?.message || 'Failed creating room', 'Close', {
+            duration: 3000,
+            verticalPosition: 'top',
+            horizontalPosition: 'center',
+            panelClass: ['error-snackbar']
+          });
         }
       });
     }
@@ -177,9 +247,20 @@ export class RoomsComponent implements OnInit, OnDestroy {
     if (!confirm('Delete this room?')) return;
     this.hotelService.deleteRoom(id).subscribe((res: any) => {
       if (res?.success !== false) {
+        this.snackBar.open('Room deleted successfully', 'Close', {
+          duration: 3000,
+          verticalPosition: 'top',
+          horizontalPosition: 'center',
+          panelClass: ['success-snackbar']
+        });
         this.reload();
       } else {
-        alert(res?.message || 'Failed deleting room');
+        this.snackBar.open(res?.message || 'Failed deleting room', 'Close', {
+          duration: 3000,
+          verticalPosition: 'top',
+          horizontalPosition: 'center',
+          panelClass: ['error-snackbar']
+        });
       }
     });
   }
@@ -204,6 +285,13 @@ export class RoomsComponent implements OnInit, OnDestroy {
 
   displayStatus(s: RoomStatus): string {
     return this.roomStatuses.find(x => x.value === s)?.label ?? String(s);
+  }
+
+  // ... inside RoomsComponent ...
+
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
   ngOnDestroy(): void {

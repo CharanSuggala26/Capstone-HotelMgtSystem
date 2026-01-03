@@ -43,6 +43,13 @@ export class AuthService {
       }));
   }
 
+  /**
+   * Registers a new user without logging them in (for Staff creating guests).
+   */
+  registerGuest(userData: RegisterRequest): Observable<AuthResponseDto> {
+    return this.http.post<AuthResponseDto>(`${this.apiUrl}/register`, userData);
+  }
+
   logout(): void {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('token');
@@ -70,6 +77,10 @@ export class AuthService {
   hasRole(role: string): boolean {
     const user = this.currentUserSubject.value;
     return user?.roles?.includes(role) || false;
+  }
+
+  getCurrentUser(): UserDto | null {
+    return this.currentUserSubject.value;
   }
 
   private loadCurrentUser(): void {

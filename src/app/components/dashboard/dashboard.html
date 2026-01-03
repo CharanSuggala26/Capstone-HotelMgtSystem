@@ -30,14 +30,11 @@
 
         <div *ngIf="hasRole('Receptionist')">
           <h3 mat-subheader>Front Desk</h3>
-          <a mat-list-item routerLink="/dashboard/checkin" routerLinkActive="active">
-            <mat-icon matListItemIcon>login</mat-icon>
-            <span matListItemTitle>Check-in/Check-out</span>
+          <a mat-list-item routerLink="/dashboard/reservations" routerLinkActive="active">
+            <mat-icon matListItemIcon>event_available</mat-icon>
+            <span matListItemTitle>Reservations (Check-in/out)</span>
           </a>
-          <a mat-list-item routerLink="/dashboard/guests" routerLinkActive="active">
-            <mat-icon matListItemIcon>people</mat-icon>
-            <span matListItemTitle>Guest Management</span>
-          </a>
+          <!-- Guests management not yet implemented -->
           <mat-divider></mat-divider>
         </div>
 
@@ -51,10 +48,15 @@
             <mat-icon matListItemIcon>meeting_room</mat-icon>
             <span matListItemTitle>Manage Rooms</span>
           </a>
-          <a mat-list-item routerLink="/dashboard/reports" routerLinkActive="active">
-            <mat-icon matListItemIcon>analytics</mat-icon>
-            <span matListItemTitle>Reports</span>
+          <a mat-list-item routerLink="/dashboard/reservations" routerLinkActive="active">
+            <mat-icon matListItemIcon>fact_check</mat-icon>
+            <span matListItemTitle>Manage Reservations</span>
           </a>
+          <a mat-list-item routerLink="/dashboard/admin/seasonal-rates" routerLinkActive="active">
+            <mat-icon matListItemIcon>price_change</mat-icon>
+            <span matListItemTitle>Seasonal Rates</span>
+          </a>
+          <!-- Reports currently admin only -->
           <mat-divider></mat-divider>
         </div>
 
@@ -68,6 +70,10 @@
             <mat-icon matListItemIcon>admin_panel_settings</mat-icon>
             <span matListItemTitle>Hotel Administration</span>
           </a>
+          <a mat-list-item routerLink="/dashboard/admin/seasonal-rates" routerLinkActive="active">
+            <mat-icon matListItemIcon>price_change</mat-icon>
+            <span matListItemTitle>Seasonal Rates</span>
+          </a>
           <a mat-list-item routerLink="/dashboard/rooms" routerLinkActive="active">
             <mat-icon matListItemIcon>meeting_room</mat-icon>
             <span matListItemTitle>Manage Rooms</span>
@@ -77,8 +83,8 @@
             <span matListItemTitle>System Reports</span>
           </a>
           <a mat-list-item routerLink="/dashboard/admin/assign" routerLinkActive="active">
-              <mat-icon matListItemIcon>add_business</mat-icon>
-              <span matListItemTitle>Assign Hotels</span>
+            <mat-icon matListItemIcon>add_business</mat-icon>
+            <span matListItemTitle>Assign Hotels</span>
           </a>
         </div>
       </mat-nav-list>

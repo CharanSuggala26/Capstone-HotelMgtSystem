@@ -5,6 +5,7 @@ export interface UserDto {
   lastName: string;
   createdAt: Date;
   roles: string[];
+  hotelId?: number;
 }
 
 export interface HotelDto {

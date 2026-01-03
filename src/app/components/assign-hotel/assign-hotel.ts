@@ -6,6 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 
 import { UserService } from '../../services/user';
 import { HotelService } from '../../services/hotel';
@@ -23,7 +24,8 @@ import { UserDetailsDto, HotelDto, ApiResponse } from '../../models';
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
-    MatCardModule
+    MatCardModule,
+    MatSnackBarModule
   ]
 })
 export class AssignHotel implements OnInit {
@@ -37,7 +39,8 @@ export class AssignHotel implements OnInit {
     private fb: FormBuilder,
     private userService: UserService,
     private hotelService: HotelService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private snackBar: MatSnackBar
   ) {
     this.assignForm = this.fb.group({
       userId: ['', Validators.required],
@@ -53,7 +56,6 @@ export class AssignHotel implements OnInit {
   loadUsers(): void {
     this.userService.getAllUsers(1, 100).subscribe({
       next: (res) => {
-        // Accessing the items array inside the paginated data
         this.users = res.data?.items || [];
         this.cdr.detectChanges();
       },
@@ -64,15 +66,12 @@ export class AssignHotel implements OnInit {
   loadHotels(): void {
     this.hotelService.getHotels().subscribe({
       next: (res: ApiResponse<HotelDto[]>) => {
-        // DRILL DOWN: API returns ApiResponse, we need the .data property
         if (res && res.data) {
           this.hotels = res.data;
         } else if (Array.isArray(res)) {
-          // Fallback if API returns raw array
           this.hotels = res;
         }
-        
-        this.cdr.detectChanges(); 
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Hotel load error', err);
@@ -90,15 +89,32 @@ export class AssignHotel implements OnInit {
     this.userService.assignHotel(userId, hotelId).subscribe({
       next: (res) => {
         if (res.success) {
-          alert('Hotel assigned successfully');
+          this.snackBar.open('Hotel assigned successfully', 'Close', {
+            duration: 3000,
+            verticalPosition: 'top',
+            horizontalPosition: 'center',
+            panelClass: ['success-snackbar']
+          });
           this.assignForm.reset();
         } else {
           this.errorMessage = res.message || 'Assignment failed';
+          this.snackBar.open(this.errorMessage, 'Close', {
+            duration: 3000,
+            verticalPosition: 'top',
+            horizontalPosition: 'center',
+            panelClass: ['error-snackbar']
+          });
         }
         this.loading = false;
       },
       error: (err) => {
         this.errorMessage = 'An error occurred during assignment';
+        this.snackBar.open(this.errorMessage, 'Close', {
+          duration: 3000,
+          verticalPosition: 'top',
+          horizontalPosition: 'center',
+          panelClass: ['error-snackbar']
+        });
         this.loading = false;
       }
     });

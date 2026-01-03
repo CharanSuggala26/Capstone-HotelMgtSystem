@@ -12,7 +12,39 @@
     </mat-form-field>
   </div>
 
-  <form [formGroup]="roomForm" (ngSubmit)="save()" class="room-form">
+  <!-- Advanced Filters -->
+  <div class="filter-panel">
+    <mat-form-field appearance="outline">
+      <mat-label>Room Type</mat-label>
+      <mat-select [(ngModel)]="filterType" (selectionChange)="applyCustomFilter()">
+        <mat-option [value]="null">All</mat-option>
+        <mat-option *ngFor="let t of roomTypes" [value]="t.value">{{t.label}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Status</mat-label>
+      <mat-select [(ngModel)]="filterStatus" (selectionChange)="applyCustomFilter()">
+        <mat-option [value]="null">All</mat-option>
+        <mat-option *ngFor="let s of roomStatuses" [value]="s.value">{{s.label}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" style="width: 100px;">
+      <mat-label>Min Price</mat-label>
+      <input matInput type="number" [(ngModel)]="filterPriceMin" (keyup)="applyCustomFilter()" placeholder="0">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" style="width: 100px;">
+      <mat-label>Max Price</mat-label>
+      <input matInput type="number" [(ngModel)]="filterPriceMax" (keyup)="applyCustomFilter()" placeholder="Max">
+    </mat-form-field>
+
+    <button mat-button (click)="clearFilters()">Clear</button>
+  </div>
+
+  <!-- Form only for Admin / Manager -->
+  <form *ngIf="isAdmin || isManager" [formGroup]="roomForm" (ngSubmit)="save()" class="room-form">
     <input formControlName="id" type="hidden" />
     <div class="form-row">
       <mat-form-field appearance="outline">
@@ -85,8 +117,17 @@
     <ng-container matColumnDef="actions">
       <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
       <mat-cell *matCellDef="let r">
-        <button mat-icon-button color="primary" (click)="startEdit(r)"><mat-icon>edit</mat-icon></button>
-        <button mat-icon-button color="warn" (click)="deleteRoom(r.id)"><mat-icon>delete</mat-icon></button>
+        <!-- Edit/Delete: Staff Only -->
+        <button *ngIf="isAdmin || isManager" mat-icon-button color="primary"
+          (click)="startEdit(r)"><mat-icon>edit</mat-icon></button>
+        <button *ngIf="isAdmin || isManager" mat-icon-button color="warn"
+          (click)="deleteRoom(r.id)"><mat-icon>delete</mat-icon></button>
+
+        <!-- Book: Everyone (Available or Occupied, future booking allowed) -->
+        <a *ngIf="r.status != 2" mat-raised-button color="accent"
+          [routerLink]="['/dashboard/hotels', r.hotelId, 'book']" style="margin-left: 8px;">
+          Book
+        </a>
       </mat-cell>
     </ng-container>
 
