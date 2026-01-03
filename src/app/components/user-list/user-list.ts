@@ -12,6 +12,8 @@ import { FormsModule } from '@angular/forms';
 import { UserService } from '../../services/user';
 import { UserDetailsDto } from '../../models';
 
+import { MatCardModule } from '@angular/material/card';
+
 @Component({
     selector: 'app-user-list',
     standalone: true,
@@ -25,6 +27,7 @@ import { UserDetailsDto } from '../../models';
         MatFormFieldModule,
         MatInputModule,
         MatSelectModule,
+        MatCardModule,
         FormsModule
     ],
     templateUrl: './user-list.html',

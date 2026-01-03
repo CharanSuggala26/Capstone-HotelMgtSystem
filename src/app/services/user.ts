@@ -59,15 +59,19 @@ export class UserService {
   //   return this.http.post<ApiResponse<void>>(`${this.apiUrl}/${userId}/promote`, { roles });
   // }
   promoteUser(userId: string, roles: string[]): Observable<ApiResponse<void>> {
-  // The backend expects an object that matches UpdateUserRoleDto
-  const payload = { 
-    userId: userId, 
-    roles: roles 
-  };
-  return this.http.post<ApiResponse<void>>(`${this.apiUrl}/${userId}/promote`, payload);
+    // The backend expects an object that matches UpdateUserRoleDto
+    const payload = {
+      userId: userId,
+      roles: roles
+    };
+    return this.http.post<ApiResponse<void>>(`${this.apiUrl}/${userId}/promote`, payload);
   }
 
+  getNotifications(userId: string): Observable<ApiResponse<import('../models').NotificationDto[]>> {
+    return this.http.get<ApiResponse<import('../models').NotificationDto[]>>(`${this.apiUrl}/${userId}/notifications`);
+  }
 
-
+  markNotificationAsRead(userId: string, notificationId: number): Observable<ApiResponse<void>> {
+    return this.http.put<ApiResponse<void>>(`${this.apiUrl}/${userId}/notifications/${notificationId}/read`, {});
+  }
 }
-

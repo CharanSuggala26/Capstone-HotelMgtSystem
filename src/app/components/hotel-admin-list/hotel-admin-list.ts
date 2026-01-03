@@ -5,12 +5,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { HotelService } from '../../services/hotel';
 import { HotelDto } from '../../models';
-import { Router,RouterModule,RouterLink } from '@angular/router';
+import { Router, RouterModule, RouterLink } from '@angular/router';
+
+import { MatCardModule } from '@angular/material/card';
 
 @Component({
     selector: 'app-hotel-admin-list',
     standalone: true,
-    imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, RouterModule,RouterLink],
+    imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatCardModule, RouterModule, RouterLink],
     templateUrl: './hotel-admin-list.html',
     styleUrl: './hotel-admin-list.css'
 })
@@ -46,7 +48,7 @@ export class HotelAdminListComponent implements OnInit {
         }
     }
 
-     editHotelAdmin(id: number | null): void {
+    editHotelAdmin(id: number | null): void {
         if (!id) {
             console.warn('editHotelAdmin called with invalid id:', id);
             return;

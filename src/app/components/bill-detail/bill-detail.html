@@ -11,7 +11,9 @@
       <p><strong>Tax:</strong> ${{ bill.taxAmount }}</p>
       <p class="total"><strong>Total:</strong> ${{ bill.totalAmount }}</p>
 
-      <mat-chip [color]="getColor(bill!.paymentStatus)" selected>
+      <mat-chip [class.status-paid]="bill!.paymentStatus === PaymentStatus.Paid"
+        [class.status-pending]="bill!.paymentStatus === PaymentStatus.Pending"
+        [class.status-refunded]="bill!.paymentStatus === PaymentStatus.Refunded" selected>
         {{ getText(bill!.paymentStatus) }}
       </mat-chip>
     </mat-card-content>

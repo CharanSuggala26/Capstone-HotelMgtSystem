@@ -61,6 +61,15 @@ export interface BillDto {
   roomNumber: string;
 }
 
+export interface NotificationDto {
+  id: number;
+  message: string;
+  type: NotificationType;
+  isRead: boolean;
+  createdAt: Date;
+  reservationId?: number;
+}
+
 export enum RoomType {
   Single = 1,
   Double = 2,
@@ -86,6 +95,14 @@ export enum PaymentStatus {
   Pending = 1,
   Paid = 2,
   Refunded = 3
+}
+
+export enum NotificationType {
+  BookingConfirmation = 0,
+  CheckInReminder = 1,
+  CheckOutReminder = 2,
+  CheckInSuccess = 3,
+  CheckOutSuccess = 4
 }
 
 export interface ApiResponse<T> {
@@ -116,6 +133,7 @@ export interface AuthResponseDto {
 export interface LoginRequest {
   email: string;
   password: string;
+  request: string;
 }
 
 export interface RegisterRequest {
@@ -134,6 +152,7 @@ export interface UserDetailsDto {
   phoneNumber?: string;
   createdAt: Date;
   roles: string[];
+  totalReservations?: number;
 }
 
 export interface AssignHotelDto {

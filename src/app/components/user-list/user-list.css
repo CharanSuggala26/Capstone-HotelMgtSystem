@@ -1,83 +1,101 @@
 .user-list-container {
-  padding: 24px;
   max-width: 1200px;
-  margin: 0 auto;
+  width: 95%;
+  margin: 2rem auto;
+  font-family: 'Roboto', 'Helvetica Neue', sans-serif;
 }
 
-.user-list-container h2 {
-  margin-bottom: 24px;
+mat-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+mat-card-header {
+  background: linear-gradient(135deg, #1976d2 0%, #1e88e5 100%);
+  color: white;
+  padding: 1.5rem 1.5rem 1rem;
+  margin-bottom: 0;
+}
+
+mat-card-title {
+  font-size: 1.5rem;
   font-weight: 500;
+  letter-spacing: 0.5px;
 }
 
-/* Filter controls - align nicely */
+mat-card-content {
+  padding: 0 !important;
+}
+
+/* Filter Section */
 .filter-controls {
-  margin-bottom: 24px;
-  display: flex;
-  justify-content: flex-start;
-  gap: 16px;
-  flex-wrap: wrap;
+  padding: 1.5rem;
+  background-color: #f5f7fa;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-/* Make table full width and add some breathing room */
+.filter-controls mat-form-field {
+  width: 100%;
+  max-width: 300px;
+}
+
+/* Table Styling */
 table.mat-table {
   width: 100%;
-  background: white;
-  box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2),
-              0 2px 2px 0 rgba(0, 0, 0, 0.14),
-              0 1px 5px 0 rgba(0, 0, 0, 0.12);
-}
-
-/* Better cell padding and text alignment */
-.mat-header-cell,
-.mat-cell {
-  padding: 12px 16px !important;
-  text-align: left;
+  border-collapse: separate;
+  border-spacing: 0;
+  box-shadow: none !important;
+  /* Remove individual table shadow */
 }
 
 .mat-header-cell {
+  background-color: #f5f7fa;
+  color: #546e7a;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.87);
-  background-color: #f5f5f5;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  padding: 1.25rem 1rem;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-/* Actions column - center buttons */
+.mat-cell {
+  padding: 1rem;
+  font-size: 0.95rem;
+  color: #2c3e50;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.mat-row:hover {
+  background-color: #f8f9fa;
+  transition: background-color 0.2s ease;
+}
+
+.mat-row:last-child .mat-cell {
+  border-bottom: none;
+}
+
+/* Actions Column */
 .mat-column-actions {
-  text-align: center;
   width: 120px;
+  text-align: right;
+  padding-right: 1.5rem !important;
 }
 
-/* Buttons spacing */
 .mat-column-actions button {
-  margin: 0 4px;
+  margin-left: 8px;
 }
 
-/* Paginator - full width and nice spacing */
+/* Paginator */
 mat-paginator {
-  margin-top: 16px;
-  display: block;
+  border-top: 1px solid #e0e0e0;
 }
 
-/* Responsive: on small screens, make table scroll horizontally */
+/* Responsive */
 @media (max-width: 768px) {
   .user-list-container {
-    padding: 16px;
-  }
-
-  .filter-controls {
-    flex-direction: column;
-  }
-
-  /* Wrap table in a scrollable container */
-  table.mat-table {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-
-  /* Optional: smaller font on mobile */
-  .mat-cell,
-  .mat-header-cell {
-    font-size: 14px;
-    padding: 10px 12px !important;
+    padding: 1rem;
   }
 }
