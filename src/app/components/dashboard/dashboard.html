@@ -23,6 +23,7 @@
         <mat-icon *ngIf="notification.type === 2">logout</mat-icon>
         <mat-icon *ngIf="notification.type === 3">how_to_reg</mat-icon>
         <mat-icon *ngIf="notification.type === 4">credit_score</mat-icon>
+        <mat-icon *ngIf="notification.type === 5">remove_circle</mat-icon>
         <div class="notification-content">
           <p>{{notification.message}}</p>
           <small>{{notification.createdAt | date:'medium'}}</small>
@@ -60,6 +61,10 @@
           <a mat-list-item routerLink="/dashboard/reservations" routerLinkActive="active">
             <mat-icon matListItemIcon>event_available</mat-icon>
             <span matListItemTitle>Reservations (Check-in/out)</span>
+          </a>
+          <a mat-list-item routerLink="/dashboard/hotels" routerLinkActive="active">
+            <mat-icon matListItemIcon>add_box</mat-icon>
+            <span matListItemTitle>New Walk-In Reservation</span>
           </a>
           <!-- Guests management not yet implemented -->
           <mat-divider></mat-divider>

@@ -1,6 +1,7 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { HotelService } from '../../services/hotel';
@@ -12,14 +13,16 @@ import { MatCardModule } from '@angular/material/card';
 @Component({
     selector: 'app-hotel-admin-list',
     standalone: true,
-    imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatCardModule, RouterModule, RouterLink],
+    imports: [CommonModule, MatTableModule, MatSortModule, MatButtonModule, MatIconModule, MatCardModule, RouterModule, RouterLink],
     templateUrl: './hotel-admin-list.html',
     styleUrl: './hotel-admin-list.css'
 })
-export class HotelAdminListComponent implements OnInit {
+export class HotelAdminListComponent implements OnInit, AfterViewInit {
     displayedColumns: string[] = ['name', 'city', 'phone', 'totalRooms', 'actions'];
     dataSource = new MatTableDataSource<HotelDto>();
     router: any;
+
+    @ViewChild(MatSort) sort!: MatSort;
 
     constructor(
         private hotelService: HotelService,
@@ -28,6 +31,10 @@ export class HotelAdminListComponent implements OnInit {
 
     ngOnInit(): void {
         this.loadHotels();
+    }
+
+    ngAfterViewInit(): void {
+        this.dataSource.sort = this.sort;
     }
 
     loadHotels(): void {

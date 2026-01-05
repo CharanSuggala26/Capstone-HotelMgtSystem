@@ -103,7 +103,8 @@ export enum NotificationType {
   CheckInReminder = 1,
   CheckOutReminder = 2,
   CheckInSuccess = 3,
-  CheckOutSuccess = 4
+  CheckOutSuccess = 4,
+  BookingCancelled = 5
 }
 
 export interface ApiResponse<T> {

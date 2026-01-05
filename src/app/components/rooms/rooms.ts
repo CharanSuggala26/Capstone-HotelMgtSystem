@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -8,6 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+import { MatSortModule, MatSort } from '@angular/material/sort';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 
@@ -29,12 +30,13 @@ import { RoomDto, RoomType, RoomStatus, HotelDto } from '../../models';
     MatInputModule,
     MatSelectModule,
     MatSnackBarModule,
+    MatSortModule,
     RouterModule
   ],
   templateUrl: './rooms.html',
   styleUrls: ['./rooms.css']
 })
-export class RoomsComponent implements OnInit, OnDestroy {
+export class RoomsComponent implements OnInit, OnDestroy, AfterViewInit {
   displayedColumns: string[] = ['roomNumber', 'type', 'capacity', 'basePrice', 'status', 'hotelName', 'actions'];
   dataSource = new MatTableDataSource<RoomDto>([]);
   roomForm: FormGroup;
@@ -44,6 +46,8 @@ export class RoomsComponent implements OnInit, OnDestroy {
   hotels: HotelDto[] = [];
   isAdmin = false;
   isManager = false;
+
+  @ViewChild(MatSort) sort!: MatSort;
 
   roomTypes = [
     { value: RoomType.Single, label: 'Single' },
@@ -145,6 +149,10 @@ export class RoomsComponent implements OnInit, OnDestroy {
       });
 
     this.roomForm.get('hotelId')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.reload());
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.sort = this.sort;
   }
 
   // Trigger filtering

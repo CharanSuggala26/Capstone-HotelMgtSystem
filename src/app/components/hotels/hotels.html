@@ -52,9 +52,9 @@
               View Rooms
             </button>
 
-            <button *ngIf="hasRole('Guest')" mat-raised-button color="accent"
-              [routerLink]="['/dashboard/hotels', hotel.id, 'book']">
-              Book Now
+            <button *ngIf="hasRole('Guest') || hasRole('Receptionist') || hasRole('HotelManager') || hasRole('Admin')"
+              mat-raised-button color="accent" [routerLink]="['/dashboard/hotels', hotel.id, 'book']">
+              {{ hasRole('Guest') ? 'Book Now' : 'Book / Walk-In' }}
             </button>
 
             <button *ngIf="hasRole('Admin')" mat-icon-button [routerLink]="['/admin/hotels', hotel.id, 'edit']"

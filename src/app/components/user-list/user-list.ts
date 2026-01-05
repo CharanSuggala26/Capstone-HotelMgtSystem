@@ -1,8 +1,9 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -22,6 +23,7 @@ import { MatCardModule } from '@angular/material/card';
         RouterModule,
         MatTableModule,
         MatPaginatorModule,
+        MatSortModule,
         MatButtonModule,
         MatIconModule,
         MatFormFieldModule,
@@ -33,13 +35,15 @@ import { MatCardModule } from '@angular/material/card';
     templateUrl: './user-list.html',
     styleUrl: './user-list.css'
 })
-export class UserListComponent implements OnInit {
+export class UserListComponent implements OnInit, AfterViewInit {
     displayedColumns: string[] = ['name', 'email', 'roles', 'actions'];
     dataSource = new MatTableDataSource<UserDetailsDto>();
     totalUsers = 0;
     pageSize = 10;
     pageIndex = 0;
     filterRole = '';
+
+    @ViewChild(MatSort) sort!: MatSort;
 
     constructor(
         private userService: UserService,
@@ -49,6 +53,10 @@ export class UserListComponent implements OnInit {
 
     ngOnInit(): void {
         this.loadUsers();
+    }
+
+    ngAfterViewInit(): void {
+        this.dataSource.sort = this.sort;
     }
 
     loadUsers(): void {

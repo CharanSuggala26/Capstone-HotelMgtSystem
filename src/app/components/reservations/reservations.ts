@@ -119,7 +119,7 @@ export class ReservationsComponent implements OnInit {
   }
 
   confirmReservation(reservationId: number): void {
-    this.reservationService.updateReservation(reservationId, { status: ReservationStatus.Confirmed }).subscribe({
+    this.reservationService.confirmReservation(reservationId).subscribe({
       next: () => {
         this.snackBar.open('Reservation confirmed', 'Close', { duration: 3000 });
         this.loadReservations();
@@ -127,6 +127,23 @@ export class ReservationsComponent implements OnInit {
       error: (error) => {
         console.error('Confirmation failed:', error);
         this.snackBar.open('Confirmation failed', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  cancelReservation(reservationId: number): void {
+    if (!confirm('Are you sure you want to cancel this reservation?')) {
+      return;
+    }
+
+    this.reservationService.cancelReservation(reservationId).subscribe({
+      next: () => {
+        this.snackBar.open('Reservation cancelled', 'Close', { duration: 3000 });
+        this.loadReservations();
+      },
+      error: (error) => {
+        console.error('Cancellation failed:', error);
+        this.snackBar.open('Cancellation failed', 'Close', { duration: 3000 });
       }
     });
   }
@@ -187,5 +204,35 @@ export class ReservationsComponent implements OnInit {
         this.snackBar.open('Could not open bill. Please check Bills page.', 'Close', { duration: 3000 });
       }
     });
+  }
+
+  canConfirm(reservation: ReservationDto): boolean {
+    return (this.hasRole('HotelManager') || this.hasRole('Admin')) &&
+      reservation.status === ReservationStatus.Booked;
+  }
+
+  canCancel(reservation: ReservationDto): boolean {
+    const status = reservation.status;
+    const isBookedOrConfirmed = status === ReservationStatus.Booked || status === ReservationStatus.Confirmed;
+
+    if (this.hasRole('HotelManager') || this.hasRole('Admin')) {
+      return isBookedOrConfirmed;
+    }
+    if (this.hasRole('Guest')) {
+      return isBookedOrConfirmed;
+    }
+    return false;
+  }
+
+  canCheckIn(reservation: ReservationDto): boolean {
+    return this.hasRole('Receptionist') && reservation.status === ReservationStatus.Confirmed;
+  }
+
+  canCheckOut(reservation: ReservationDto): boolean {
+    return this.hasRole('Receptionist') && reservation.status === ReservationStatus.CheckedIn;
+  }
+
+  canGenerateBill(reservation: ReservationDto): boolean {
+    return (this.hasRole('Admin') || this.hasRole('Receptionist')) && reservation.status === ReservationStatus.CheckedOut;
   }
 }

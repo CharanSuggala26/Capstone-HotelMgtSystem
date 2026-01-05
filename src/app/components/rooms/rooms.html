@@ -83,29 +83,29 @@
     </div>
   </form>
 
-  <mat-table [dataSource]="dataSource" class="rooms-table">
+  <mat-table [dataSource]="dataSource" matSort class="rooms-table">
     <ng-container matColumnDef="roomNumber">
-      <mat-header-cell *matHeaderCellDef>Room</mat-header-cell>
+      <mat-header-cell *matHeaderCellDef mat-sort-header>Room</mat-header-cell>
       <mat-cell *matCellDef="let r">{{ r.roomNumber }}</mat-cell>
     </ng-container>
 
     <ng-container matColumnDef="type">
-      <mat-header-cell *matHeaderCellDef>Type</mat-header-cell>
+      <mat-header-cell *matHeaderCellDef mat-sort-header>Type</mat-header-cell>
       <mat-cell *matCellDef="let r">{{ displayType(r.type) }}</mat-cell>
     </ng-container>
 
     <ng-container matColumnDef="capacity">
-      <mat-header-cell *matHeaderCellDef>Capacity</mat-header-cell>
+      <mat-header-cell *matHeaderCellDef mat-sort-header>Capacity</mat-header-cell>
       <mat-cell *matCellDef="let r">{{ r.capacity }}</mat-cell>
     </ng-container>
 
     <ng-container matColumnDef="basePrice">
-      <mat-header-cell *matHeaderCellDef>Price</mat-header-cell>
+      <mat-header-cell *matHeaderCellDef mat-sort-header>Price</mat-header-cell>
       <mat-cell *matCellDef="let r">{{ r.basePrice }}</mat-cell>
     </ng-container>
 
     <ng-container matColumnDef="status">
-      <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
+      <mat-header-cell *matHeaderCellDef mat-sort-header>Status</mat-header-cell>
       <mat-cell *matCellDef="let r">{{ displayStatus(r.status) }}</mat-cell>
     </ng-container>
 

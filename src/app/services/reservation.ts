@@ -27,6 +27,14 @@ export class ReservationService {
     return this.http.put<ApiResponse<ReservationDto>>(`${this.apiUrl}/Reservations/${id}`, reservation);
   }
 
+  cancelReservation(id: number): Observable<ApiResponse<void>> {
+    return this.http.post<ApiResponse<void>>(`${this.apiUrl}/Reservations/${id}/cancel`, {});
+  }
+
+  confirmReservation(id: number): Observable<ApiResponse<void>> {
+    return this.http.post<ApiResponse<void>>(`${this.apiUrl}/Reservations/${id}/confirm`, {});
+  }
+
   checkIn(reservationId: number): Observable<ApiResponse<void>> {
     return this.http.post<ApiResponse<void>>(`${this.apiUrl}/Reservations/${reservationId}/checkin`, {});
   }
